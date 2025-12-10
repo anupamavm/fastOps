@@ -3,10 +3,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
-# Use SQLite for development (change to PostgreSQL in production)
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./fastops.db")
+# Database URL from environment
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:pass@localhost:5432/fastops_db")
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {})
+# Create engine
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -17,3 +18,4 @@ def get_db():
         yield db
     finally:
         db.close()
+
