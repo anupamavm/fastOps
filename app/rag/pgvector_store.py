@@ -17,7 +17,7 @@ class PgVectorStore:
         finally:
             db.close()
     
-    def add_document(self, session_id: str, text: str, embedding):
+    def add_document(self, session_id: str, chat_id: str, text: str, embedding):
         """Add a document with its embedding to the database"""
         db = SessionLocal()
         try:
@@ -26,6 +26,7 @@ class PgVectorStore:
             
             doc_embedding = DocumentEmbedding(
                 session_id=session_id,
+                chat_id=chat_id,
                 content=text,
                 embedding=embedding_list
             )
@@ -34,7 +35,7 @@ class PgVectorStore:
         finally:
             db.close()
     
-    def search(self, query_embedding, session_id: str = None, top_k: int = 3):
+    def search(self, query_embedding, session_id: str = None, chat_id: str = None, top_k: int = 3):
         """Search for similar documents using cosine similarity"""
         db = SessionLocal()
         try:
@@ -48,6 +49,7 @@ class PgVectorStore:
                        1 - (embedding <=> :embedding::vector) AS similarity
                 FROM document_embeddings
                 WHERE (:session_id IS NULL OR session_id = :session_id)
+                AND (:chat_id IS NULL OR chat_id = :chat_id)
                 ORDER BY embedding <=> :embedding::vector
                 LIMIT :top_k
             """)
@@ -71,8 +73,8 @@ _store = PgVectorStore()
 def init_extension():
     _store.init_extension()
 
-def add_document(session_id: str, text: str, embedding):
-    _store.add_document(session_id, text, embedding)
+def add_document(session_id: str, chat_id: str, text: str, embedding):
+    _store.add_document(session_id, chat_id, text, embedding)
 
-def search(query_embedding, session_id: str = None, top_k: int = 3):
-    return _store.search(query_embedding, session_id, top_k)
+def search(query_embedding, session_id: str = None, chat_id: str = None, top_k: int = 3):
+    return _store.search(query_embedding, session_id, chat_id, top_k)

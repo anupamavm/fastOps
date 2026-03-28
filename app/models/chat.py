@@ -8,6 +8,7 @@ class ChatHistory(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     session_id = Column(String, index=True, nullable=False)
+    chat_id = Column(String, index=True, nullable=False, default="default")
     role = Column(String, nullable=False)  # 'user' or 'assistant'
     content = Column(Text, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -22,6 +23,7 @@ class DocumentEmbedding(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     session_id = Column(String, index=True, nullable=False)
+    chat_id = Column(String, index=True, nullable=False, default="default")
     content = Column(Text, nullable=False)
     embedding = Column(Vector(384), nullable=False)  # 384 dimensions for all-MiniLM-L6-v2
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)

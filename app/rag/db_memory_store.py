@@ -4,13 +4,14 @@ from app.config.database import SessionLocal
 from .embedder import embed
 from .pgvector_store import add_document
 
-def save(session_id: str, role: str, content: str):
+def save(session_id: str,chat_id: str, role: str, content: str):
     """Save a chat message to the database"""
     db = SessionLocal()
     try:
         # Save to chat history
         chat_msg = ChatHistory(
             session_id=session_id,
+            chat_id=chat_id,
             role=role,
             content=content
         )
@@ -19,16 +20,16 @@ def save(session_id: str, role: str, content: str):
         
         # Also add to vector store for semantic search
         emb = embed(content)
-        add_document(session_id, content, emb)
+        add_document(session_id, chat_id, content, emb)
     finally:
         db.close()
 
-def get(session_id: str, limit: int = 10):
+def get(session_id: str, chat_id: str, limit: int = 10):
     """Get recent chat history for a session"""
     db = SessionLocal()
     try:
         messages = db.query(ChatHistory)\
-            .filter(ChatHistory.session_id == session_id)\
+            .filter(ChatHistory.session_id == session_id, ChatHistory.chat_id == chat_id)\
             .order_by(ChatHistory.timestamp.desc())\
             .limit(limit)\
             .all()
@@ -38,12 +39,12 @@ def get(session_id: str, limit: int = 10):
     finally:
         db.close()
 
-def clear(session_id: str):
+def clear(session_id: str, chat_id: str):
     """Clear chat history for a session"""
     db = SessionLocal()
     try:
         db.query(ChatHistory)\
-            .filter(ChatHistory.session_id == session_id)\
+            .filter(ChatHistory.session_id == session_id, ChatHistory.chat_id == chat_id)\
             .delete()
         db.commit()
     finally:

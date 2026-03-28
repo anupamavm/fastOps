@@ -16,17 +16,12 @@ if not api_key:
     raise ValueError("GROQ_API_KEY not found in environment variables. Please check your .env file.")
 client = Groq(api_key=api_key)
 
-def answer(question: str, session_id: str):
-    # Embed query
+def answer(question: str, session_id: str, chat_id: str = "default"):
     q_embed = embed(question)
+    # vector search for specific chat_id
+    context_docs = search(q_embed, session_id=session_id, chat_id=chat_id, top_k=3)
+    memory = "\n".join(get(session_id, chat_id, limit=10))
 
-    # Vector search (search within session context)
-    context_docs = search(q_embed, session_id=session_id, top_k=3)
-
-    # Conversation memory from database
-    memory = "\n".join(get(session_id, limit=10))
-
-    # Compose prompt
     prompt = f"""
     Context from previous conversations:
     {context_docs}
@@ -38,16 +33,13 @@ def answer(question: str, session_id: str):
     {question}
     """
 
-    # Groq LLM call
     response = client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=[{"role": "user", "content": prompt}]
     )
 
     answer_text = response.choices[0].message.content
-
-    # Save to database
-    save(session_id, "user", question)
-    save(session_id, "assistant", answer_text)
+    save(session_id, chat_id, "user", question)
+    save(session_id, chat_id, "assistant", answer_text)
 
     return answer_text
