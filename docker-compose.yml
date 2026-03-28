@@ -6,7 +6,7 @@ networks:
 
 services:
   db:
-    image: pgvector/pgvector:pg16
+    image: pgvector/pg16-alpine # smaller Alpine image
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
@@ -22,21 +22,6 @@ services:
       interval: 5s
       retries: 5
       timeout: 5s
-
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "5050:80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    networks:
-      - app_network
-    depends_on:
-      db:
-        condition: service_healthy
 
   web:
     build:
@@ -57,4 +42,3 @@ services:
 
 volumes:
   postgres_data:
-  pgadmin_data:
