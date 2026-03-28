@@ -39,11 +39,9 @@ class PgVectorStore:
         """Search for similar documents using cosine similarity"""
         db = SessionLocal()
         try:
-            # Convert numpy array to list
             embedding_list = query_embedding.tolist() if hasattr(query_embedding, 'tolist') else query_embedding
             embedding_str = "[" + ",".join(map(str, embedding_list)) + "]"
             
-            # Build query with optional session filter
             query = text("""
                 SELECT content, 
                        1 - (embedding <=> :embedding::vector) AS similarity
@@ -67,7 +65,6 @@ class PgVectorStore:
         finally:
             db.close()
 
-# Singleton instance
 _store = PgVectorStore()
 
 def init_extension():
